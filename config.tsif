@@ -1,0 +1,18 @@
+[SETTINGS]
+cqi = MA==
+
+[ABOUT]
+version = 1.0
+channel = public
+requires = python3,icarus-verilog
+os = windows
+for = ece-dsce
+published = 2021
+loglevel = release
+license = apache-license-2.0
+uwp = no
+cred = b5a8doe0
+
+[WARNING]
+value = DO NOT MODIFY THIS FILE. DOING SO MAY BREAK THE SOFTWARE.
+

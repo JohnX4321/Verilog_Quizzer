@@ -1,0 +1,7 @@
+Test 1 => Passed
+Test 2 => Passed
+Test 3 => Passed
+Test 4 => Passed
+
+Number of Tests Passed - 4
+Number of Tests Failed - 0
