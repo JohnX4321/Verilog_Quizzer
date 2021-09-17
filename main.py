@@ -1,64 +1,48 @@
-# This is a sample Python script.
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 # -*- coding: utf-8 -*-
 
-import datetime, os
+import datetime,os
 import logging
 from tkinter.filedialog import *
 from tkinter.messagebox import *
-import configparser, base64
+from tkinter import *
+
 from ttkbootstrap import *
 
 currQues = ""
 currFile = None
 orFileContents = None
+#names=["Select Question","tb1.v","tb2.v","tb3.v","tb4.v","tb5.v","tb6.v","tb7.v","tb8.v","tb9.v","tb10.v","tb11.v","tb12.v",
+#       "tb13.v","tb14.v","tb15.v","tb16.v","tb17.v","tb18.v","tb19.v","tb20.v","tb21.v","tb22.v","tb23.v","tb24.v",
+#       "tb25.v"]
 
-questions = ["Design a Verilog code to simulate Full Adder Circuit"]
 currIndex = 0
 workDir = os.getcwd() + "\\data\\"
-configKey = str(base64.b64encode("CurrentQuestionIndex".encode('utf-8')).decode('utf-8')).lower()
-
-saved=False;
-def createConfig():
-    global configKey, currIndex
-    config = configparser.ConfigParser()
-    # config['SETTINGS'] = {configKey: str(base64.b64encode(str(currIndex).encode("ascii")))}
-    config['SETTINGS'] = {
-        "cqi": str(base64.b64encode(str(currIndex).encode('utf-8')).decode('utf-8'))}  # ,"First": "true","USN": "NA"}
-    config['ABOUT'] = {"version": "1.0", "channel": "public", "requires": "python3,icarus-verilog", "os":"windows","for": "ece-dsce",
-                       "published": "2021", "loglevel": "release","license": "apache-license-2.0","uwp": "no","cred": "b5a8doe0"}
-    config['WARNING'] = {
-        "value": "DO NOT MODIFY THIS FILE. DOING SO MAY BREAK THE SOFTWARE."}
-    with open('config.tsif', 'w') as cf:
-        config.write(cf)
 
 
-def readConfig():
-    global currIndex, configKey
-    if not os.path.isfile('config.tsif'):
-        createConfig()
-    else:
-        config = configparser.ConfigParser()
-        config.read('config.tsif')
-        # for key in config['SETTINGS']:
-        #    print(bytes(key))
-        # print(config['SETTINGS'][configKey])
-        # currIndex = int(base64.b64decode(str(config['SETTINGS'][configKey])))
-        currIndex = int(base64.b64decode(config['SETTINGS']['cqi']).decode('utf-8'))
+saved=False
+
+def showTB(fn):
+    master=Tk()
+    f=open(workDir+fn)
+    msg = Message(master, text=str(f.read()))
+    msg.config(bg='lightgreen', font=('times', 24, 'italic'))
+    msg.pack()
 
 
-def compileIVerilog():
+def compileIVerilog(ques):
     global saved
     if not saved:
         showwarning("Save","Please Save the file from File->Save and then press submit")
         return
+    if ques==str("Select"):
+        showwarning("Question","Choose question from the dropdown")
+        return
+    qname=str("tb"+ques+".v")
     os.chdir(workDir)
-    cmd = os.system(str('cmd.exe /c iverilog -o adder soln.v tb_adder.v\n'))
-    cmd = os.system('cmd.exe /c vvp adder\n')
+    cmd = os.system(str('cmd.exe /c iverilog -o comres soln.v '+qname+'\n'))
+    cmd = os.system('cmd.exe /c vvp comres\n')
     if cmd != 0:
-        print("Error")
         showerror("Error", "Iverilog not installed\n or Error In Code")
         return
     print("done")
@@ -73,7 +57,7 @@ def editorPage():
     style=Style(theme='cyborg')
     root = style.master
     title = StringVar()
-    title.set("FPGA Quiz")
+    title.set("Verilog Evaluator")
     root.title(title.get())
     icon = PhotoImage(file="icon.png")
     root.iconphoto(False,icon)
@@ -83,21 +67,37 @@ def editorPage():
     # sb = StringVar()
     # sb.set("Ln")
     # statusbar = Label(root, textvariable=sb, relief=SUNKEN, bd=1, anchor="w")
-    textArea = Text(root, undo=True, wrap=None, height=root.winfo_height(), width=root.winfo_width())
+    textArea = Text(root, undo=True, wrap=None, height=root.winfo_height(), width=root.winfo_width(),font=("Times New Roman",15))
     textArea.grid(row=0, sticky=N + E + S + W)
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(1, weight=1)
     scrollbarV = Scrollbar(textArea, command=textArea.yview)
     textArea.config(yscrollcommand=scrollbarV.set)
     scrollbarV.pack(side=RIGHT, fill=Y)
-    currQues = questions[currIndex]
-    cQ = StringVar()
-    cQ.set(currQues)
+
+
+
     fr_buttons = Frame(root)
-    btn_Submit = Button(fr_buttons, text='Submit', command=compileIVerilog)
-    btn_Submit.place(x=10, y=5, width=80, height=25)
-    quesLabel = Label(fr_buttons, textvariable=cQ, wraplength=80, font=(30))
-    quesLabel.place(x=0, y=40, width=100)
+    btn_Submit = Button(fr_buttons, text='Submit', command=lambda: compileIVerilog(cbt.get()),font=("Times New Roman",15))
+    btn_Submit.place(x=10, y=5, width=80, height=30)
+
+    def showTB2():
+        f=open(workDir+'tb1.v')
+        showinfo("TestBench",str(f.read()))
+
+    cbt=StringVar()
+    Label(fr_buttons, text="Select Question",
+               foreground="yellow",
+              font=("Times New Roman", 15)).place(x=5,y=60,width=140,height=20)
+    questionBox=ttk.Combobox(fr_buttons,width=20,textvariable=cbt,background="white")
+    questionBox['values']=('Select','1','2','3','4','5','6','7','8','9','10','11','12','13','14','15','16','17','18','19','20','21','22','23','24','25')
+    questionBox.place(x=10,y=95,width=100,height=30)
+    questionBox.set("Select")
+    showtb=Button(fr_buttons,text="Show Testbench",command=lambda: showTB)
+    showtb.place(x=19,y=150,width=40,height=20)
+    #root.bind('<<ComboboxSelected>>',combochange)
+    cq = StringVar()
+    cq.set("Select")
     # fr_buttons.grid(row=0, column=0, sticky="ns")
     fr_buttons.place(x=0, y=0, width=150, height=root.winfo_screenheight())
     # textArea.grid(row=0, column=1, sticky="nsew")
@@ -112,30 +112,23 @@ def editorPage():
         title.set("New File")
         textArea.delete(1.0, END)
 
+
+
     def helpMenu():
-        showinfo("Help", "Enter the code or open file.\n Save the file.\n Press the submit button and wait. \n  "
-                         "Results will be displayed.")
+        showinfo("Help", "Enter the code or open file.\nSave the file.\nPress the submit button and wait. \n Results will be displayed.")
 
     def openFile():
         global currFile, orFileContents
 
-        currFile = askopenfilename(defaultextension=".v",
-                                   filetypes=[("All Files", "*.*"), ("Text Files", "*.txt"),
-                                              ("Verilog files", "*.v")])
-        if currFile == "":
-            currFile = None
-            orFileContents = None
-        else:
-            try:
-                title.set(os.path.basename(currFile))
-                textArea.delete(1.0, END)
-                file = open(currFile, "r")
-                textArea.insert(1.0, file.read())
-                orFileContents = file.read()
-                file.close()
-            except:
-                title.set("NewText")
-                showerror("Error", str("Unable to open " + currFile + "\n Not a readable file"))
+        currFile=workDir+"soln.v"
+        try:
+            textArea.delete(1.0, END)
+            file = open(currFile, "r")
+            textArea.insert(1.0, file.read())
+            orFileContents = file.read()
+            file.close()
+        except IOError:
+            showerror("Error", "No file found to be restored. You may not have saved the file")
 
     def saveFile(*args):
         global currFile, orFileContents,saved
@@ -145,7 +138,7 @@ def editorPage():
         else:
             file = open(str(currFile), "w")
             orFileContents = textArea.get(1.0, END)
-            file.write(textArea.get(1.0, END))
+            file.write(orFileContents)
             file.close()
             showinfo("Save Success", "All changes Saved")
 
@@ -153,7 +146,7 @@ def editorPage():
         global currFile, workDir,saved
         if not saved:
             saved=True
-        workDir = os.getcwd()
+        #workDir = os.getcwd()
         currFile = workDir + "soln.v"  # asksaveasfilename(defaultextension=".v",
         # filetypes=[("All Files", "*.*"), ("Text Documents", "*.txt"),
         #          ("Verilog Files", "*.v")])
@@ -182,9 +175,9 @@ def editorPage():
         textArea.delete(*r)
 
     def about():
-        showinfo("About FPGA Quiz",
-                 "A text editor/application \n to submit code for given question and score the same.\n » Developed "
-                 "for ECE Dept, DSCE -- 2021. \n » Contact Teacher for any issues")
+        showinfo("About Verilog Evaluator",
+                 "A text editor/application \n to submit code for given question and score the same.\n » "
+                 "ECE Dept, DSCE -- 2021. \n » Icon by Darius Dan (flaticon.com) \n» Contact Teacher for any issues")
 
     def exitApp():
         root.quit()
@@ -234,7 +227,7 @@ def editorPage():
     s1 = Menu(menu, tearoff=0)
     menu.add_cascade(label="File", menu=s1)
     s1.add_command(label="New (Ctrl+N)", command=createFile)
-    #s1.add_command(label="Open (Ctrl+O)", command=openFile)
+    s1.add_command(label="Restore (Ctrl+O)", command=openFile)
     s1.add_command(label="Save (Ctrl+S)", command=saveFile)
     s1.add_command(label="Save As", command=saveAsFile)
     s1.add_separator()
@@ -253,13 +246,16 @@ def editorPage():
     menu.add_command(label="Help", command=helpMenu)
 
 
+
 splash_root = Tk()
-splash_root.title("FPGA Quiz Application")
+splash_root.title("Verilog Evaluator Application")
 # Adjust size
 splash_root.geometry("400x200")
 splashText = StringVar()
-splashText.set("Loading...\n\n Please install Icarus verilog before \n submission and add to system path.\n Executable is provided with this app")
-readConfig()
+splashText.set("Loading...\n\n This software uses Icarus \n Verilog for its execution.\n If you saved the file and closed application you \n can get back the text by File->Restore")
+icon = PhotoImage(file="icon.png")
+splash_root.iconphoto(False,icon)
+#readConfig()
 # Set Label
 splash_label = Label(splash_root, textvariable=splashText, font=18)
 splash_label.pack()
@@ -267,16 +263,11 @@ splash_label.pack()
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     def switch():
-        # or question greater than 15
-        if currIndex is not None:
-            splash_root.destroy()
-            editorPage()
-        else:
-            splashText.set("Unable to read settings file. Exiting..")
-            splash_root.after(2500, lambda: quit())
+        splash_root.destroy()
+        editorPage()
 
 
-    splash_root.after(5000, lambda: switch())
+    splash_root.after(4000, lambda: switch())
     try:
         mainloop()
     except Exception as e:
